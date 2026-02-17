@@ -1,4 +1,4 @@
-name: Deploy Strapi to ECS
+name: Strapi Deployment Workflow
 
 on:
   push:
@@ -8,7 +8,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Configure AWS Credentials
@@ -18,20 +18,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Login to ECR
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image
+      - name: Build, Tag, and Push Fresh Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: strapi-repo
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          # Create fresh image and apply tagging
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          # Push to registry
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Update ECS Service
+      - name: Update ECS Task Revision
         run: |
-          aws ecs update-service --cluster strapi-cluster --service strapi-service --force-new-deployment
+          # Update the service to use the new image revision
+          aws ecs update-service --cluster strapi-cluster-v3 --service strapi-service-v3 --force-new-deployment
