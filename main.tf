@@ -8,71 +8,67 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# --- Infrastructure Management ---
-data "aws_vpc" "main" {
-  filter {
-    name   = "tag:Name"
-    values = ["strapi-vpc"]
-  }
+# --- 1. NETWORK: Use Default VPC as per Management Instruction ---
+resource "aws_default_vpc" "default" {}
+
+resource "aws_default_subnet" "default_az1" {
+  availability_zone = "us-east-1a"
 }
 
-data "aws_subnets" "subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.main.id]
-  }
+# --- 2. IAM: Reference Existing Roles provided in Support Channel ---
+# Role: arn:aws:iam::811738710312:role/ecsInstanceRole
+# Profile: ecsInstanceProfile
+variable "instance_profile" {
+  default = "ecsInstanceProfile"
 }
 
-# RDS Instance (db.t3.micro, Single-AZ)
-resource "aws_db_instance" "strapi_db" {
-  identifier          = "strapi-db-v3"
-  instance_class      = "db.t3.micro"
-  engine              = "postgres"
-  allocated_storage   = 20
-  db_name             = "strapidb"
-  username            = "strapi_admin"
-  password            = "SecurePass123!" 
-  multi_az            = false
-  skip_final_snapshot = true
-  publicly_accessible = false
-}
-
-# ECS Cluster
+# --- 3. ECS CLUSTER ---
 resource "aws_ecs_cluster" "main" {
   name = "strapi-cluster-v3"
 }
 
-# Task Definition
+# --- 4. EC2 INSTANCE (To run the ECS Tasks) ---
+# Management suggested a single EC2 if it works
+resource "aws_instance" "ecs_node" {
+  ami                    = "ami-0c101f26f147fa7fd" # Amazon Linux 2 ECS Optimized
+  instance_type          = "t3.micro"
+  iam_instance_profile   = var.instance_profile
+  subnet_id              = aws_default_subnet.default_az1.id
+  user_data              = <<EOF
+#!/bin/bash
+echo ECS_CLUSTER=${aws_ecs_cluster.main.name} >> /etc/ecs/ecs.config
+EOF
+
+  tags = { Name = "strapi-ecs-node" }
+}
+
+# --- 5. TASK DEFINITION (Launch Type: EC2) ---
 resource "aws_ecs_task_definition" "strapi" {
   family                   = "strapi-task"
   network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
+  requires_compatibilities = ["EC2"] # Changed from Fargate to EC2
   cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = "arn:aws:iam::811738710312:role/ecsInstanceRole"
-  task_role_arn            = "arn:aws:iam::811738710312:role/ecsInstanceRole"
 
   container_definitions = jsonencode([{
     name  = "strapi-app"
     image = "811738710312.dkr.ecr.us-east-1.amazonaws.com/strapi-repo:latest"
     portMappings = [{ containerPort = 1337, hostPort = 1337 }]
-    environment = [
-      { name = "DATABASE_HOST", value = aws_db_instance.strapi_db.address },
-      { name = "DATABASE_CLIENT", value = "postgres" }
-    ]
+    # Add your DB environment variables here
   }])
 }
 
-# ECS Service
+# --- 6. ECS SERVICE ---
 resource "aws_ecs_service" "main" {
   name            = "strapi-service-v3"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.strapi.arn
-  launch_type     = "FARGATE"
+  launch_type     = "EC2" # Changed from Fargate to EC2
   desired_count   = 1
 
   network_configuration {
-    subnets          = data.aws_subnets.subnets.ids
+    subnets          = [aws_default_subnet.default_az1.id]
     assign_public_ip = true
   }
 }

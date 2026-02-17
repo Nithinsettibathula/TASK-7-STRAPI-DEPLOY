@@ -1,4 +1,4 @@
-name: Strapi Management Task
+name: Strapi Management Submission
 
 on:
   push:
@@ -28,12 +28,12 @@ jobs:
           ECR_REPOSITORY: strapi-repo
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Fresh image creation and tagging
+          # Fresh Image Creation
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-          # Pushing to the registry
+          # Registry Push
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Update Task Revision
+      - name: Update ECS Service
         run: |
-          # Force new deployment to use the new image revision
+          # Management Instruction: Accomplish via Git Action only
           aws ecs update-service --cluster strapi-cluster-v3 --service strapi-service-v3 --force-new-deployment
