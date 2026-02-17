@@ -1,4 +1,4 @@
-name: Strapi Management Submission
+name: Strapi Deployment via Git Actions
 
 on:
   push:
@@ -17,19 +17,22 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-          # మేనేజ్‌మెంట్ ఇచ్చిన రోల్ ని ఇక్కడ వాడుతున్నాం
-          role-to-assume: arn:aws:iam::811738710312:role/ecsInstanceRole
-          role-duration-seconds: 1200
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, Tag, and Push
+      - name: Build and Tag Fresh Image
         run: |
+          # Creating fresh image and tagging it as latest
           docker build -t 811738710312.dkr.ecr.us-east-1.amazonaws.com/strapi-repo:latest .
+
+      - name: Push to Registry
+        run: |
+          # Pushing image to the ECR repo created earlier
           docker push 811738710312.dkr.ecr.us-east-1.amazonaws.com/strapi-repo:latest
 
-      - name: Update ECS Service
+      - name: Force New ECS Deployment
         run: |
+          # Updating service to use the new image revision
           aws ecs update-service --cluster strapi-cluster-v3 --service strapi-service-v3 --force-new-deployment
