@@ -1,4 +1,3 @@
-# Standard AWS Provider configuration
 terraform {
   required_providers {
     aws = { source = "hashicorp/aws", version = "~> 5.0" }
@@ -9,26 +8,27 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# 1. Using Default VPC as requested by management to avoid limits
+# --- 1. NETWORK: Use Default VPC as per management instruction ---
 resource "aws_default_vpc" "default" {}
 
 resource "aws_default_subnet" "default_az1" {
   availability_zone = "us-east-1a"
 }
 
-# 2. ECS Cluster creation
+# --- 2. ECS CLUSTER ---
 resource "aws_ecs_cluster" "main" {
   name = "strapi-cluster-v3"
 }
 
-# 3. ECS Task Definition for EC2 launch type
+# --- 3. TASK DEFINITION (Launch Type: EC2) ---
 resource "aws_ecs_task_definition" "strapi" {
   family                   = "strapi-task"
   network_mode             = "awsvpc"
-  requires_compatibilities = ["EC2"]
+  requires_compatibilities = ["EC2"] # Management rule: Switch to EC2
   cpu                      = "256"
   memory                   = "512"
-  # Using existing execution role from the support channel
+  
+  # References the existing role provided in the support channel
   execution_role_arn       = "arn:aws:iam::811738710312:role/ecsInstanceRole"
 
   container_definitions = jsonencode([{
@@ -38,12 +38,12 @@ resource "aws_ecs_task_definition" "strapi" {
   }])
 }
 
-# 4. ECS Service for EC2 (Not Fargate)
+# --- 4. ECS SERVICE (Launch Type: EC2) ---
 resource "aws_ecs_service" "main" {
   name            = "strapi-service-v3"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.strapi.arn
-  launch_type     = "EC2"
+  launch_type     = "EC2" # Management rule: Switch to EC2
   desired_count   = 1
 
   network_configuration {

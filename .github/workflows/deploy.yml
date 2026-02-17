@@ -1,4 +1,4 @@
-name: Strapi Deployment via Git Actions
+name: Task 7 Final Submission
 
 on:
   push:
@@ -23,16 +23,22 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and Tag Fresh Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: strapi-repo
         run: |
-          # Creating fresh image and tagging it as latest
-          docker build -t 811738710312.dkr.ecr.us-east-1.amazonaws.com/strapi-repo:latest .
+          # Create fresh image and apply tagging
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
 
-      - name: Push to Registry
+      - name: Push Image to Registry
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: strapi-repo
         run: |
-          # Pushing image to the ECR repo created earlier
-          docker push 811738710312.dkr.ecr.us-east-1.amazonaws.com/strapi-repo:latest
+          # Push to the existing strapi-repo registry
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Force New ECS Deployment
+      - name: Update ECS Service Revision
         run: |
-          # Updating service to use the new image revision
+          # Accomplish update via git action only
           aws ecs update-service --cluster strapi-cluster-v3 --service strapi-service-v3 --force-new-deployment
