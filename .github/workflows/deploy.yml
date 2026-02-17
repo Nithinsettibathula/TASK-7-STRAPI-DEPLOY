@@ -1,4 +1,4 @@
-name: Strapi Deployment Workflow
+name: Strapi Management Task
 
 on:
   push:
@@ -22,19 +22,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, Tag, and Push Fresh Image
+      - name: Build, Tag, and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: strapi-repo
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Create fresh image and apply tagging
+          # Fresh image creation and tagging
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-          # Push to registry
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          # Pushing to the registry
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Update ECS Task Revision
+      - name: Update Task Revision
         run: |
-          # Update the service to use the new image revision
+          # Force new deployment to use the new image revision
           aws ecs update-service --cluster strapi-cluster-v3 --service strapi-service-v3 --force-new-deployment
