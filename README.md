@@ -1,61 +1,31 @@
-# 🚀 Getting started with Strapi
+# Strapi CMS Deployment to AWS ECS
+Nithin Settibathula
+This project demonstrates the deployment of a **Strapi application** to **Amazon ECS (Fargate)** using **Terraform** and **GitHub Actions**. This was completed as part of my DevOps Internship (Task 7).
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
+## 📌 Project Overview
+The goal of this task was to automate the infrastructure setup and the deployment pipeline for a production-ready Strapi application on AWS.
 
-### `develop`
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
 
-```
-npm run develop
-# or
-yarn develop
-```
+## 🛠️ Tech Stack
+* **Cloud Provider:** AWS (Account: `811738710312`)
+* **Infrastructure as Code:** Terraform
+* **CI/CD:** GitHub Actions
+* **Database:** Amazon RDS PostgreSQL
+* **Containerization:** Docker & Amazon ECR
 
-### `start`
+## 🚀 Key Features
+* **Automated Infrastructure:** Terraform was used to create the ECS Cluster, RDS Instance, and Security Groups.
+* **CI/CD Pipeline:** GitHub Actions automatically builds the Docker image and deploys it to ECS on every push to the `main` branch.
+* **Resource Optimization:** Configured **1024 CPU** and **2048 Memory** for application stability.
+* **IAM Security:** Utilized the existing `ecs_fargate_taskRole` for secure task execution.
 
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-start)
+## 🔗 Project Links
+* **Live App URL:** `http://YOUR_PUBLIC_IP:1337`
+* **GitHub Repository:** [Insert your GitHub Link Here]
 
-```
-npm run start
-# or
-yarn start
-```
-
-### `build`
-
-Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
-
-```
-npm run build
-# or
-yarn build
-```
-
-## ⚙️ Deployment
-
-Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
-
-```
-yarn strapi deploy
-```
-
-## 📚 Learn more
-
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://strapi.io/blog) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
-
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
-
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+## 📖 How to Deploy
+1. **Initialize Terraform:**
+   ```powershell
+   terraform init
+   terraform apply -var="db_password=YourPassword" -auto-approve
