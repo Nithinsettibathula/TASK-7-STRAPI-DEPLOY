@@ -1,20 +1,10 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "moduleResolution": "node",
-    "module": "esnext",
-    "target": "es5",
-    "lib": ["esnext", "dom"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": false,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+    "moduleResolution": "node16",
+    "module": "node16",
+    "outDir": "../../dist/admin",
+    "rootDir": "."
+  },
+  "include": ["./**/*"]
 }
