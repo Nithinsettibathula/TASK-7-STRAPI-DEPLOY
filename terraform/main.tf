@@ -1,6 +1,5 @@
 # --- VPC & Subnets ---
 data "aws_vpc" "default" { default = true }
-
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -21,11 +20,17 @@ resource "aws_ecs_cluster" "main" {
 
 # --- SECURITY GROUP ---
 resource "aws_security_group" "ecs_sg" {
-  name   = "strapi-ecs-sg-8117-final"
+  name   = "strapi-ecs-sg-8117-final-v4"
   vpc_id = data.aws_vpc.default.id
   ingress {
     from_port   = 1337
     to_port     = 1337
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -55,10 +60,9 @@ resource "aws_ecs_task_definition" "strapi" {
   family                   = "strapi-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "1024"
+  memory                   = "2048"
   
-  # Using management-provided role for 811738710312
   execution_role_arn       = "arn:aws:iam::811738710312:role/ecs_fargate_taskRole"
   task_role_arn            = "arn:aws:iam::811738710312:role/ecs_fargate_taskRole"
 
@@ -67,6 +71,9 @@ resource "aws_ecs_task_definition" "strapi" {
     image     = "811738710312.dkr.ecr.us-east-1.amazonaws.com/strapi-app:latest"
     essential = true
     portMappings = [{ containerPort = 1337, hostPort = 1337 }]
+    
+    # Log configuration తీసేశాను (పర్మిషన్ ఎర్రర్ రాకుండా)
+    
     environment = [
       { name = "DATABASE_CLIENT", value = "postgres" },
       { name = "DATABASE_HOST", value = aws_db_instance.strapi_db.address },
@@ -81,7 +88,7 @@ resource "aws_ecs_task_definition" "strapi" {
 
 # --- ECS SERVICE ---
 resource "aws_ecs_service" "strapi" {
-  name            = "strapi-service-v2" # Changed to v2 to fix idempotent error
+  name            = "strapi-service-v2"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.strapi.arn
   desired_count   = 1
