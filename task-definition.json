@@ -2,6 +2,7 @@
     "family": "strapi-task",
     "networkMode": "awsvpc",
     "executionRoleArn": "arn:aws:iam::841031789005:role/strapi-ecs-exec-role",
+    "taskRoleArn": "arn:aws:iam::841031789005:role/strapi-ecs-exec-role",
     "containerDefinitions": [
         {
             "name": "strapi-container",
@@ -21,10 +22,20 @@
                 { "name": "DATABASE_NAME", "value": "strapi" },
                 { "name": "DATABASE_USERNAME", "value": "strapi_admin" },
                 { "name": "NODE_ENV", "value": "production" }
-            ]
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/strapi",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
         }
     ],
-    "requiresCompatibilities": ["FARGATE"],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
     "cpu": "512",
     "memory": "1024"
 }
