@@ -1,8 +1,8 @@
 {
     "family": "strapi-task",
     "networkMode": "awsvpc",
-    "executionRoleArn": "arn:aws:iam::841031789005:role/strapi-ecs-exec-role",
-    "taskRoleArn": "arn:aws:iam::841031789005:role/strapi-ecs-exec-role",
+    "executionRoleArn": "arn:aws:iam::841031789005:role/strapi-execution-role-nithin-v5",
+    "taskRoleArn": "arn:aws:iam::841031789005:role/strapi-execution-role-nithin-v5",
     "containerDefinitions": [
         {
             "name": "strapi-container",
@@ -14,23 +14,7 @@
                     "protocol": "tcp"
                 }
             ],
-            "essential": true,
-            "environment": [
-                { "name": "DATABASE_CLIENT", "value": "postgres" },
-                { "name": "DATABASE_HOST", "value": "terraform-20260218073337993800000001.c0tei44cuw2c.us-east-1.rds.amazonaws.com" },
-                { "name": "DATABASE_PORT", "value": "5432" },
-                { "name": "DATABASE_NAME", "value": "strapi" },
-                { "name": "DATABASE_USERNAME", "value": "strapi_admin" },
-                { "name": "NODE_ENV", "value": "production" }
-            ],
-            "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "/ecs/strapi",
-                    "awslogs-region": "us-east-1",
-                    "awslogs-stream-prefix": "ecs"
-                }
-            }
+            "essential": true
         }
     ],
     "requiresCompatibilities": [
