@@ -1,0 +1,30 @@
+{
+    "family": "strapi-task",
+    "networkMode": "awsvpc",
+    "executionRoleArn": "arn:aws:iam::841031789005:role/strapi-ecs-exec-role",
+    "containerDefinitions": [
+        {
+            "name": "strapi-container",
+            "image": "841031789005.dkr.ecr.us-east-1.amazonaws.com/strapi-app:latest",
+            "portMappings": [
+                {
+                    "containerPort": 1337,
+                    "hostPort": 1337,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                { "name": "DATABASE_CLIENT", "value": "postgres" },
+                { "name": "DATABASE_HOST", "value": "terraform-20260218073337993800000001.c0tei44cuw2c.us-east-1.rds.amazonaws.com" },
+                { "name": "DATABASE_PORT", "value": "5432" },
+                { "name": "DATABASE_NAME", "value": "strapi" },
+                { "name": "DATABASE_USERNAME", "value": "strapi_admin" },
+                { "name": "NODE_ENV", "value": "production" }
+            ]
+        }
+    ],
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "512",
+    "memory": "1024"
+}

@@ -1,0 +1,54 @@
+############################
+# Terraform (CRITICAL)
+############################
+# Local plugin directory
+.terraform/
+# Local state files (Contain secrets/passwords in plain text!)
+*.tfstate
+*.tfstate.backup
+# Lock file (Optional to ignore, but usually ignored in simple tasks)
+.terraform.lock.hcl
+# The Terraform executable itself
+*.exe
+
+############################
+# Node.js / Strapi
+############################
+node_modules/
+dist/
+build/
+.cache/
+.tmp/
+.strapi/
+.strapi-updater.json
+.strapi-cloud.json
+
+############################
+# Environment & Secrets
+############################
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+############################
+# Logs
+############################
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+############################
+# OS Files
+############################
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+############################
+# Uploads (Strapi local assets)
+############################
+public/uploads/*
+!public/uploads/.gitkeep

@@ -1,18 +1,18 @@
-name: Task 7 Final Submission
+name: Deploy Strapi to ECS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -20,25 +20,23 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and Tag Fresh Image
+      - name: Build, tag, and push image to ECR
+        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: strapi-repo
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Create fresh image and apply tagging
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -t $ECR_REGISTRY/strapi-app:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/strapi-app:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/strapi-app:$IMAGE_TAG $ECR_REGISTRY/strapi-app:latest
+          docker push $ECR_REGISTRY/strapi-app:latest
+          echo "image=$ECR_REGISTRY/strapi-app:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Push Image to Registry
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: strapi-repo
-        run: |
-          # Push to the existing strapi-repo registry
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-
-      - name: Update ECS Service Revision
-        run: |
-          # Accomplish update via git action only
-          aws ecs update-service --cluster strapi-cluster-v3 --service strapi-service-v3 --force-new-deployment
+      - name: Deploy Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: terraform/task-definition.json
+          service: strapi-service
+          cluster: strapi-cluster
