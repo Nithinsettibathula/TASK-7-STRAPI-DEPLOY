@@ -1,31 +1,11 @@
 # --- VPC & Subnets ---
 data "aws_vpc" "default" { default = true }
+
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.default.id]
   }
-}
-
-# --- CREATE CUSTOM IAM ROLE (To fix the "Role is not valid" error) ---
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "strapi-execution-role-nithin-v5"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "ecs-tasks.amazonaws.com"
-      }
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_policy" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 # --- ECR REPOSITORY ---
@@ -41,7 +21,7 @@ resource "aws_ecs_cluster" "main" {
 
 # --- SECURITY GROUP ---
 resource "aws_security_group" "ecs_sg" {
-  name   = "strapi-ecs-sg-v5"
+  name   = "strapi-ecs-sg-8117-final"
   vpc_id = data.aws_vpc.default.id
   ingress {
     from_port   = 1337
@@ -57,7 +37,7 @@ resource "aws_security_group" "ecs_sg" {
   }
 }
 
-# --- RDS POSTGRES (Added back to fix output error) ---
+# --- RDS POSTGRES ---
 resource "aws_db_instance" "strapi_db" {
   allocated_storage    = 20
   engine               = "postgres"
@@ -78,8 +58,9 @@ resource "aws_ecs_task_definition" "strapi" {
   cpu                      = "512"
   memory                   = "1024"
   
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn
+  # Using management-provided role for 811738710312
+  execution_role_arn       = "arn:aws:iam::811738710312:role/ecs_fargate_taskRole"
+  task_role_arn            = "arn:aws:iam::811738710312:role/ecs_fargate_taskRole"
 
   container_definitions = jsonencode([{
     name      = "strapi-container"
@@ -100,7 +81,7 @@ resource "aws_ecs_task_definition" "strapi" {
 
 # --- ECS SERVICE ---
 resource "aws_ecs_service" "strapi" {
-  name            = "strapi-service"
+  name            = "strapi-service-v2" # Changed to v2 to fix idempotent error
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.strapi.arn
   desired_count   = 1

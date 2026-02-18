@@ -7,12 +7,11 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: strapi-app
-  ECS_SERVICE: strapi-service
+  ECS_SERVICE: strapi-service-v2 # Updated to match main.tf
   ECS_CLUSTER: strapi-cluster
   ECS_TASK_DEFINITION: task-definition.json
   CONTAINER_NAME: strapi-container
-  # Hardcoded registry to prevent the 'invalid reference format' error
-  ECR_REGISTRY: 841031789005.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REGISTRY: 811738710312.dkr.ecr.us-east-1.amazonaws.com
 
 jobs:
   deploy:
@@ -39,17 +38,10 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Build the docker image
           docker build --provenance=false -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
-          
-          # Push the specific commit tag
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
-          
-          # Tag and push as 'latest' for the ECS service to pull
           docker tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-          
-          # Pass the image URI to the next step
           echo "image=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Fill in the new image ID in the Amazon ECS task definition

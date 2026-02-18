@@ -1,12 +1,12 @@
 {
     "family": "strapi-task",
     "networkMode": "awsvpc",
-    "executionRoleArn": "arn:aws:iam::841031789005:role/strapi-execution-role-nithin-v5",
-    "taskRoleArn": "arn:aws:iam::841031789005:role/strapi-execution-role-nithin-v5",
+    "executionRoleArn": "arn:aws:iam::811738710312:role/ecs_fargate_taskRole",
+    "taskRoleArn": "arn:aws:iam::811738710312:role/ecs_fargate_taskRole",
     "containerDefinitions": [
         {
             "name": "strapi-container",
-            "image": "841031789005.dkr.ecr.us-east-1.amazonaws.com/strapi-app:latest",
+            "image": "811738710312.dkr.ecr.us-east-1.amazonaws.com/strapi-app:latest",
             "portMappings": [
                 {
                     "containerPort": 1337,
@@ -14,15 +14,7 @@
                     "protocol": "tcp"
                 }
             ],
-            "essential": true,
-            "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "/ecs/strapi",
-                    "awslogs-region": "us-east-1",
-                    "awslogs-stream-prefix": "ecs"
-                }
-            }
+            "essential": true
         }
     ],
     "requiresCompatibilities": [
